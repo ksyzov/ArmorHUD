@@ -1,0 +1,13 @@
+[
+  {
+    "modid": "armorhud",
+    "name": "ArmorHUD",
+    "description": "Displays your armor and held item above the hotbar.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "authorList": [
+      "ksyz#7084"
+    ]
+  }
+]
