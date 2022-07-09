@@ -7,6 +7,12 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 
 public class ArmorHUDCommand extends CommandBase {
+  private static final Minecraft mc = Minecraft.getMinecraft();
+
+  public static void sendMessage(String message) {
+    mc.thePlayer.addChatMessage(new ChatComponentText(TextFormatting.translate(message)));
+  }
+
   @Override
   public String getCommandName() {
     return "armorhud";
@@ -14,25 +20,19 @@ public class ArmorHUDCommand extends CommandBase {
 
   @Override
   public String getCommandUsage(ICommandSender sender) {
-    return "/" + getCommandName();
+    return String.format("/%s", getCommandName());
   }
 
   @Override
   public void processCommand(ICommandSender sender, String[] args) {
-    ArmorHUD.isArmorHUDEnabled = !ArmorHUD.isArmorHUDEnabled;
-    sendMessage(
-      "&3[&bArmorHUD&3]&r " + (ArmorHUD.isArmorHUDEnabled ? "&a&lON" : "&c&lOFF") + "&r"
+    ArmorHUD.isEnabled = !ArmorHUD.isEnabled;
+    sendMessage(String.format(
+      "&3[&bArmorHUD&3]&r %s&r", ArmorHUD.isEnabled ? "&a&lON" : "&c&lOFF")
     );
   }
 
   @Override
   public int getRequiredPermissionLevel() {
     return -1;
-  }
-
-  private void sendMessage(String message) {
-    Minecraft.getMinecraft().thePlayer.addChatMessage(
-      new ChatComponentText(TextFormatting.translateAlternateColorCodes(message))
-    );
   }
 }

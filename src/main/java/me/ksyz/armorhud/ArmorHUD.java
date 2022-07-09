@@ -1,12 +1,11 @@
 package me.ksyz.armorhud;
 
 import me.ksyz.armorhud.utils.EnchantmentProperty;
+import me.ksyz.armorhud.utils.RenderUtils;
 import me.ksyz.armorhud.utils.TextFormatting;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.gui.GuiChat;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -27,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Mod(
-  modid = ArmorHUD.MODID, version = ArmorHUD.VERSION,
+  modid = "armorhud", version = "@VERSION@",
   clientSideOnly = true, acceptedMinecraftVersions = "1.8.9"
 )
 public class ArmorHUD {
@@ -82,24 +81,19 @@ public class ArmorHUD {
     }
   };
 
-  private static TextFormatting getLevelColor(int maxLevel, int level) {
+  private static TextFormatting getLevelColor(final int maxLevel, final int level) {
     if (maxLevel >= 1 && maxLevel <= 5) {
       if (level < 1) {
         return TextFormatting.GRAY;
       } else if (level > maxLevel) {
         return TextFormatting.LIGHT_PURPLE;
       }
-
       return levelColors[maxLevel - 1][level - 1];
     }
-
     return TextFormatting.WHITE;
   }
 
-  public static final String MODID = "armorhud";
-  public static final String VERSION = "@VERSION@";
-
-  public static boolean isArmorHUDEnabled = true;
+  public static boolean isEnabled = true;
 
   @EventHandler
   public void init(FMLInitializationEvent event) {
@@ -109,16 +103,11 @@ public class ArmorHUD {
 
   @SubscribeEvent
   public void onTick(TickEvent.RenderTickEvent event) {
-    if (!isArmorHUDEnabled || event.phase.equals(TickEvent.Phase.START)) {
+    if (!isEnabled || mc.currentScreen != null || event.phase.equals(TickEvent.Phase.START)) {
       return;
     }
 
-    GuiScreen currentScreen = mc.currentScreen;
-    if (!(currentScreen == null || currentScreen instanceof GuiChat)) {
-      return;
-    }
-
-    EntityPlayerSP player = mc.thePlayer;
+    final EntityPlayerSP player = mc.thePlayer;
     if (player == null || player.capabilities.isCreativeMode || player.isSpectator()) {
       return;
     }
@@ -127,10 +116,10 @@ public class ArmorHUD {
     if (player.isInsideOfMaterial(Material.water) && player.getAir() > 0) {
       yOffset += 10;
     } else if (player.isRiding()) {
-      Entity entity = player.ridingEntity;
+      final Entity entity = player.ridingEntity;
       if (entity instanceof EntityLivingBase) {
-        EntityLivingBase entityLivingBase = (EntityLivingBase) entity;
-        float maxHealth = entityLivingBase.getMaxHealth();
+        final EntityLivingBase entityLivingBase = (EntityLivingBase) entity;
+        final float maxHealth = entityLivingBase.getMaxHealth();
         if (maxHealth > 40.0) {
           yOffset += 20;
         } else if (maxHealth > 20.0) {
@@ -154,7 +143,7 @@ public class ArmorHUD {
       }
       if (item != null) {
         RenderHelper.enableGUIStandardItemLighting();
-        RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
+        final RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
         itemRenderer.renderItemAndEffectIntoGUI(
           item,
           xPosition - (i * 16), yPosition
@@ -170,39 +159,18 @@ public class ArmorHUD {
         GlStateManager.scale(0.5F, 0.5F, 0.0F);
 
         int j = 0;
-        for (Map.Entry<Integer, Integer> entry : EnchantmentHelper.getEnchantments(item).entrySet()) {
-          EnchantmentProperty enchantmentProperty = enchantmentProperties.get(entry.getKey());
+        for (final Map.Entry<Integer, Integer> entry : EnchantmentHelper.getEnchantments(item).entrySet()) {
+          final EnchantmentProperty enchantmentProperty = enchantmentProperties.get(entry.getKey());
           if (enchantmentProperty == null) {
             continue;
           }
-          final String shortName = enchantmentProperty.shortName;
-          final int maxLevel = enchantmentProperty.maxLevel;
           final int level = entry.getValue();
-
-          mc.fontRendererObj.drawString(
-            shortName + level,
-            (xPosition - (i * 16)) * 2 + 1,
-            (yPosition + (j * 4)) * 2, 0
-          );
-          mc.fontRendererObj.drawString(
-            shortName + level,
-            (xPosition - (i * 16)) * 2 - 1,
-            (yPosition + (j * 4)) * 2, 0
-          );
-          mc.fontRendererObj.drawString(
-            shortName + level,
-            (xPosition - (i * 16)) * 2,
-            (yPosition + (j * 4)) * 2 + 1, 0
-          );
-          mc.fontRendererObj.drawString(
-            shortName + level,
-            (xPosition - (i * 16)) * 2,
-            (yPosition + (j * 4)) * 2 - 1, 0
-          );
-          mc.fontRendererObj.drawString(
-            shortName + getLevelColor(maxLevel, level) + level,
-            (xPosition - (i * 16)) * 2,
-            (yPosition + (j * 4)) * 2, -1
+          final TextFormatting levelColor = getLevelColor(enchantmentProperty.maxLevel, level);
+          final String text = TextFormatting.translate(String.format(
+            "&r%s%s%d&r", enchantmentProperty.shortName, levelColor, level
+          ));
+          RenderUtils.drawShadedString(
+            text, (xPosition - (i * 16)) * 2, (yPosition + (j * 4)) * 2, -1
           );
           ++j;
         }

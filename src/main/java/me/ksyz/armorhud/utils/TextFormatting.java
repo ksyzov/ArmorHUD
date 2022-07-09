@@ -1,5 +1,6 @@
 package me.ksyz.armorhud.utils;
 
+@SuppressWarnings("unused")
 public enum TextFormatting {
   BLACK('0', -16777216),
   DARK_BLUE('1', -16777046),
@@ -16,11 +17,11 @@ public enum TextFormatting {
   RED('c', -43691),
   LIGHT_PURPLE('d', -43521),
   YELLOW('e', -171), WHITE('f', -1),
-  MAGIC('k', 0, true),
-  BOLD('l', 0, true),
-  STRIKETHROUGH('m', 0, true),
-  UNDERLINE('n', 0, true),
-  ITALIC('o', 0, true),
+  MAGIC('k', 0),
+  BOLD('l', 0),
+  STRIKETHROUGH('m', 0),
+  UNDERLINE('n', 0),
+  ITALIC('o', 0),
   RESET('r', 0);
 
   private final String toString;
@@ -29,10 +30,6 @@ public enum TextFormatting {
   public static final char COLOR_CHAR = '\u00A7';
 
   TextFormatting(char code, int rgb) {
-    this(code, rgb, false);
-  }
-
-  TextFormatting(char code, int rgb, boolean isFormat) {
     this.rgb = rgb;
     this.toString = new String(new char[]{COLOR_CHAR, code});
   }
@@ -46,8 +43,8 @@ public enum TextFormatting {
     return this.rgb;
   }
 
-  public static String translateAlternateColorCodes(String textToTranslate) {
-    char[] b = textToTranslate.toCharArray();
+  public static String translate(String text) {
+    char[] b = text.toCharArray();
     for (int i = 0; i < b.length - 1; i++) {
       if (b[i] == '&' && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
         b[i] = TextFormatting.COLOR_CHAR;
