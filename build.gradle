@@ -12,7 +12,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.github.asbyth:ForgeGradle:6f53277"
+        classpath "com.github.ReplayMod:ForgeGradle:ceb83c0:all"
     }
 }
 
@@ -36,17 +36,13 @@ minecraft {
 processResources {
     inputs.property "version", project.version
     inputs.property "mcversion", project.minecraft.version
-    from(sourceSets.main.resources.srcDirs) {
-        include "mcmod.info"
+    filesMatching("mcmod.info") {
         expand "version": project.version, "mcversion": project.minecraft.version
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        exclude "mcmod.info"
     }
 }
 
 sourceSets {
     main {
-        output.resourcesDir = java.outputDir
+        output.resourcesDir = java.classesDirectory
     }
 }
