@@ -1,6 +1,5 @@
 package me.ksyz.armorhud;
 
-import me.ksyz.armorhud.utils.EnchantmentProperty;
 import me.ksyz.armorhud.utils.RenderUtils;
 import me.ksyz.armorhud.utils.TextFormatting;
 import net.minecraft.block.material.Material;
@@ -30,7 +29,16 @@ import java.util.Map;
   clientSideOnly = true, acceptedMinecraftVersions = "1.8.9"
 )
 public class ArmorHUD {
-  private static final Minecraft mc = Minecraft.getMinecraft();
+  private static final class EnchantmentProperty {
+    private final String shortName;
+    private final int maxLevel;
+
+    public EnchantmentProperty(final String shortName, final int maxLevel) {
+      this.shortName = shortName;
+      this.maxLevel = maxLevel;
+    }
+  }
+
   private static final Map<Integer, EnchantmentProperty> enchantmentProperties =
     new HashMap<Integer, EnchantmentProperty>() {{
       put(0, new EnchantmentProperty("Pr", 4));
@@ -59,38 +67,26 @@ public class ArmorHUD {
       put(61, new EnchantmentProperty("LoS", 3));
       put(62, new EnchantmentProperty("Lu", 3));
     }};
-  private static final TextFormatting[][] levelColors = {
-    { // 1
-      TextFormatting.AQUA
-    },
-    { // 2
-      TextFormatting.GREEN, TextFormatting.RED
-    },
-    { // 3
-      TextFormatting.GREEN, TextFormatting.YELLOW,
-      TextFormatting.RED
-    },
-    { // 4
-      TextFormatting.GREEN, TextFormatting.YELLOW,
-      TextFormatting.GOLD, TextFormatting.RED
-    },
-    { // 5
-      TextFormatting.GREEN, TextFormatting.YELLOW,
-      TextFormatting.GOLD, TextFormatting.RED,
-      TextFormatting.DARK_RED
-    }
-  };
+  private static final Minecraft mc = Minecraft.getMinecraft();
 
-  private static TextFormatting getLevelColor(final int maxLevel, final int level) {
-    if (maxLevel >= 1 && maxLevel <= 5) {
-      if (level < 1) {
-        return TextFormatting.GRAY;
-      } else if (level > maxLevel) {
-        return TextFormatting.LIGHT_PURPLE;
-      }
-      return levelColors[maxLevel - 1][level - 1];
+  private static TextFormatting getLevelColor(final int level, final int maxLevel) {
+    if (level > maxLevel) {
+      return TextFormatting.LIGHT_PURPLE;
     }
-    return TextFormatting.WHITE;
+    if (level == maxLevel) {
+      return TextFormatting.RED;
+    }
+    switch (level) {
+      case 1:
+        return TextFormatting.AQUA;
+      case 2:
+        return TextFormatting.GREEN;
+      case 3:
+        return TextFormatting.YELLOW;
+      case 4:
+        return TextFormatting.GOLD;
+    }
+    return TextFormatting.GRAY;
   }
 
   public static boolean isEnabled = true;
@@ -165,7 +161,7 @@ public class ArmorHUD {
             continue;
           }
           final int level = entry.getValue();
-          final TextFormatting levelColor = getLevelColor(enchantmentProperty.maxLevel, level);
+          final TextFormatting levelColor = getLevelColor(level, enchantmentProperty.maxLevel);
           final String text = TextFormatting.translate(String.format(
             "&r%s%s%d&r", enchantmentProperty.shortName, levelColor, level
           ));
