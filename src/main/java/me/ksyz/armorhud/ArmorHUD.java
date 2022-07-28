@@ -5,6 +5,7 @@ import me.ksyz.armorhud.utils.TextFormatting;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -39,7 +40,7 @@ public class ArmorHUD {
     }
   }
 
-  private static final Map<Integer, EnchantmentProperty> enchantmentProperties =
+  private static final HashMap<Integer, EnchantmentProperty> enchantmentProperties =
     new HashMap<Integer, EnchantmentProperty>() {{
       put(0, new EnchantmentProperty("Pr", 4));
       put(1, new EnchantmentProperty("Fp", 4));
@@ -99,7 +100,11 @@ public class ArmorHUD {
 
   @SubscribeEvent
   public void onTick(TickEvent.RenderTickEvent event) {
-    if (!isEnabled || mc.currentScreen != null || event.phase.equals(TickEvent.Phase.START)) {
+    if (!isEnabled || event.phase.equals(TickEvent.Phase.START)) {
+      return;
+    }
+
+    if (!(mc.currentScreen == null || mc.currentScreen instanceof GuiChat)) {
       return;
     }
 
