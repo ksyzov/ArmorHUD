@@ -27,7 +27,7 @@ public class ArmorHUDCommand extends CommandBase {
   public void processCommand(ICommandSender sender, String[] args) {
     ArmorHUD.isEnabled = !ArmorHUD.isEnabled;
     sendMessage(String.format(
-      "&3[&bArmorHUD&3]&r %s&r", ArmorHUD.isEnabled ? "&a&lON" : "&c&lOFF")
+      "&7[&fArmorHUD&7]&r %s&r", ArmorHUD.isEnabled ? "&a&lON" : "&c&lOFF")
     );
   }
 
