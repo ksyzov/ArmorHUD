@@ -9,11 +9,13 @@ import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -27,46 +29,41 @@ import java.util.Map;
 
 @Mod(
   modid = "armorhud", version = "@VERSION@",
-  clientSideOnly = true, acceptedMinecraftVersions = "1.8.9"
+  clientSideOnly = true, acceptedMinecraftVersions = "1.12.2"
 )
 public class ArmorHUD {
-  private static final class EnchantmentProperty {
-    private final String shortName;
-    private final int maxLevel;
-
-    public EnchantmentProperty(final String shortName, final int maxLevel) {
-      this.shortName = shortName;
-      this.maxLevel = maxLevel;
-    }
-  }
-
-  private static final HashMap<Integer, EnchantmentProperty> enchantmentProperties =
-    new HashMap<Integer, EnchantmentProperty>() {{
-      put(0, new EnchantmentProperty("Pr", 4));
-      put(1, new EnchantmentProperty("Fp", 4));
-      put(2, new EnchantmentProperty("Ff", 4));
-      put(3, new EnchantmentProperty("Bp", 4));
-      put(4, new EnchantmentProperty("Pp", 4));
-      put(5, new EnchantmentProperty("Re", 3));
-      put(6, new EnchantmentProperty("Aq", 1));
-      put(7, new EnchantmentProperty("Th", 3));
-      put(8, new EnchantmentProperty("Ds", 3));
-      put(16, new EnchantmentProperty("Sh", 5));
-      put(17, new EnchantmentProperty("Sm", 5));
-      put(18, new EnchantmentProperty("BoA", 5));
-      put(19, new EnchantmentProperty("Kb", 2));
-      put(20, new EnchantmentProperty("Fa", 2));
-      put(21, new EnchantmentProperty("Lo", 3));
-      put(32, new EnchantmentProperty("Ef", 5));
-      put(33, new EnchantmentProperty("St", 1));
-      put(34, new EnchantmentProperty("Ub", 3));
-      put(35, new EnchantmentProperty("Fo", 3));
-      put(48, new EnchantmentProperty("Po", 5));
-      put(49, new EnchantmentProperty("Pu", 2));
-      put(50, new EnchantmentProperty("Fl", 1));
-      put(51, new EnchantmentProperty("Inf", 1));
-      put(61, new EnchantmentProperty("LoS", 3));
-      put(62, new EnchantmentProperty("Lu", 3));
+  private static final HashMap<Integer, String> shortNames =
+    new HashMap<Integer, String>() {{
+      put(0, "Pr");
+      put(1, "Fp");
+      put(2, "Ff");
+      put(3, "Bp");
+      put(4, "Pp");
+      put(5, "Re");
+      put(6, "Aq");
+      put(7, "Th");
+      put(8, "Ds");
+      put(9, "Fw");
+      put(10, "CoB");
+      put(16, "Sh");
+      put(17, "Sm");
+      put(18, "BoA");
+      put(19, "Kb");
+      put(20, "Fa");
+      put(21, "Lo");
+      put(22, "Sw");
+      put(32, "Ef");
+      put(33, "St");
+      put(34, "Ub");
+      put(35, "Fo");
+      put(48, "Po");
+      put(49, "Pu");
+      put(50, "Fl");
+      put(51, "Inf");
+      put(61, "LoS");
+      put(62, "Lu");
+      put(70, "Men");
+      put(71, "CoV");
     }};
   private static final Minecraft mc = Minecraft.getMinecraft();
 
@@ -108,16 +105,16 @@ public class ArmorHUD {
       return;
     }
 
-    final EntityPlayerSP player = mc.thePlayer;
+    final EntityPlayerSP player = mc.player;
     if (player == null || player.capabilities.isCreativeMode || player.isSpectator()) {
       return;
     }
 
     int yOffset = 56;
-    if (player.isInsideOfMaterial(Material.water) && player.getAir() > 0) {
+    if (player.isInsideOfMaterial(Material.WATER) && player.getAir() > 0) {
       yOffset += 10;
     } else if (player.isRiding()) {
-      final Entity entity = player.ridingEntity;
+      final Entity entity = player.getRidingEntity();
       if (entity instanceof EntityLivingBase) {
         final EntityLivingBase entityLivingBase = (EntityLivingBase) entity;
         final float maxHealth = entityLivingBase.getMaxHealth();
@@ -138,11 +135,11 @@ public class ArmorHUD {
     for (int i = 0; i <= 4; ++i) {
       ItemStack item;
       if (i == 0) {
-        item = player.getHeldItem();
+        item = player.getHeldItem(EnumHand.MAIN_HAND);
       } else {
-        item = player.inventory.armorInventory[i - 1];
+        item = player.inventory.armorInventory.get(i - 1);
       }
-      if (item != null) {
+      if (item != ItemStack.EMPTY) {
         RenderHelper.enableGUIStandardItemLighting();
         final RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
         itemRenderer.renderItemAndEffectIntoGUI(
@@ -150,7 +147,7 @@ public class ArmorHUD {
           xPosition - (i * 16), yPosition
         );
         itemRenderer.renderItemOverlayIntoGUI(
-          mc.fontRendererObj, item,
+          mc.fontRenderer, item,
           xPosition - (i * 16), yPosition, null
         );
         RenderHelper.disableStandardItemLighting();
@@ -160,18 +157,27 @@ public class ArmorHUD {
         GlStateManager.scale(0.5F, 0.5F, 0.0F);
 
         int j = 0;
-        for (final Map.Entry<Integer, Integer> entry : EnchantmentHelper.getEnchantments(item).entrySet()) {
-          final EnchantmentProperty enchantmentProperty = enchantmentProperties.get(entry.getKey());
-          if (enchantmentProperty == null) {
+        for (final Map.Entry<Enchantment, Integer> entry : EnchantmentHelper.getEnchantments(item).entrySet()) {
+          final Enchantment enchantment = entry.getKey();
+          final String shortName = shortNames.get(Enchantment.getEnchantmentID(enchantment));
+          if (shortName == null) {
             continue;
           }
-          final int level = entry.getValue();
-          final TextFormatting levelColor = getLevelColor(level, enchantmentProperty.maxLevel);
-          final String text = TextFormatting.translate(String.format(
-            "&r%s%s%d&r", enchantmentProperty.shortName, levelColor, level
-          ));
+          String text;
+          if (enchantment.isCurse()) {
+            text = String.format("&r&4%s&r", shortName);
+          } else {
+            final int level = entry.getValue();
+            final TextFormatting levelColor = getLevelColor(
+              level, enchantment.getMaxLevel()
+            );
+            text = String.format("&r%s%s%d&r", shortName, levelColor, level);
+          }
           RenderUtils.drawShadedString(
-            text, (xPosition - (i * 16)) * 2, (yPosition + (j * 4)) * 2, -1
+            TextFormatting.translate(text),
+            (xPosition - (i * 16)) * 2,
+            (yPosition + (j * 4)) * 2,
+            -1
           );
           ++j;
         }

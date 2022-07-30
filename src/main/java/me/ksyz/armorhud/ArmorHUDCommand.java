@@ -1,34 +1,33 @@
 package me.ksyz.armorhud;
 
+import mcp.MethodsReturnNonnullByDefault;
 import me.ksyz.armorhud.utils.TextFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.TextComponentString;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
 public class ArmorHUDCommand extends CommandBase {
-  private static final Minecraft mc = Minecraft.getMinecraft();
-
-  public static void sendMessage(String message) {
-    mc.thePlayer.addChatMessage(new ChatComponentText(TextFormatting.translate(message)));
-  }
-
   @Override
-  public String getCommandName() {
+  public String getName() {
     return "armorhud";
   }
 
   @Override
-  public String getCommandUsage(ICommandSender sender) {
-    return String.format("/%s", getCommandName());
+  public String getUsage(ICommandSender iCommandSender) {
+    return String.format("/%s", getName());
   }
 
   @Override
-  public void processCommand(ICommandSender sender, String[] args) {
+  public void execute(MinecraftServer server, ICommandSender sender, String[] args) {
     ArmorHUD.isEnabled = !ArmorHUD.isEnabled;
-    sendMessage(String.format(
-      "&7[&fArmorHUD&7]&r %s&r", ArmorHUD.isEnabled ? "&a&lON" : "&c&lOFF")
-    );
+    sender.sendMessage(new TextComponentString(TextFormatting.translate(String.format(
+      "&7[&fArmorHUD&7]&r %s&r", ArmorHUD.isEnabled ? "&a&lON" : "&c&lOFF"
+    ))));
   }
 
   @Override
